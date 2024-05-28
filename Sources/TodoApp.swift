@@ -2,15 +2,6 @@ import Foundation
 
 class TodoApp {
     private let fileName = "todos.json"
-    private var nextId = 0
-
-    init() {
-        // Initialize the first time
-        if let _ = loadTodos().first {
-            // If there are existing todos, find the max ID
-            nextId = loadTodos().max { $0.id < $1.id }?.id?? 0 + 1
-        }
-    }
 
     func saveTodos(todos: [TodoItem]) {
         if let encodedData = try? JSONEncoder().encode(todos) {
@@ -28,34 +19,38 @@ class TodoApp {
     }
 
     func addTodo(title: String, completed: Bool = false) -> TodoItem {
-        let newTodo = TodoItem(id: nextId, title: title, completed: completed)
-        nextId += 1
+        let newTodo = TodoItem( title: title, completed: completed)
         var todos = loadTodos()
         todos.append(newTodo)
         saveTodos(todos: todos)
         return newTodo
     }
-    func updateTodo(id: Int, title: String?, completed: Bool?) {
+    func updateTodo(id: UUID, title: String?, completed: Bool?) -> TodoItem? {
         var todos = loadTodos()
         if let index = todos.firstIndex(where: { $0.id == id }) {
+            let todoToUpdate = todos[index]
             if let newTitle = title {
-                todos[index].title = newTitle
+                todoToUpdate.title = newTitle
             }
             if let newCompletedStatus = completed {
-                todos[index].completed = newCompletedStatus
+                todoToUpdate.completed = newCompletedStatus
             }
+            todos[index] = todoToUpdate
             saveTodos(todos: todos)
+            return todoToUpdate
+        } else {
+            return nil
         }
     }
-    func deleteTodo(id: Int) {
+    func deleteTodo(id: UUID) -> Bool {
         var todos = loadTodos()
         if let index = todos.firstIndex(where: { $0.id == id }) {
             todos.remove(at: index)
             saveTodos(todos: todos)
-            print("Todo with ID \(id) deleted successfully.")
+            return true
         } else {
-            print("No todo found with ID \(id).")
+            return false
         }
-    }
-    // Additional methods for editing and deleting todos...
+}
+
 }

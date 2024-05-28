@@ -1,20 +1,11 @@
-import Foundation
+import Figlet
+import ArgumentParser
 
-let todoApp = TodoApp()
+struct FigletTool: ParsableCommand {
+  @Option(help: "Specify the input")
+  public var input: String
 
-// Load existing todos
-var todos = todoApp.loadTodos()
-print("Current Todos:")
-for todo in todos {
-    print("\(todo.title)")
-}
-
-// Add a new todo
-todos.append(TodoItem(title: "Learn Swift", completed: false))
-todoApp.saveTodos(todos: todos)
-
-// List todos
-print("\nUpdated Todos:")
-for todo in todos {
-    print("\(todo.title)")
+  public func run() throws {
+    Figlet.say(self.input)
+  }
 }
