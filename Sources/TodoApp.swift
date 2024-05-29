@@ -25,7 +25,7 @@ class TodoApp {
         saveTodos(todos: todos)
         return newTodo
     }
-    func updateTodo(id: UUID, title: String?, completed: Bool?) -> TodoItem? {
+    func editTodo(id: String, title: String?, completed: Bool?) -> TodoItem? {
         var todos = loadTodos()
         if let index = todos.firstIndex(where: { $0.id == id }) {
             let todoToUpdate = todos[index]
@@ -42,7 +42,7 @@ class TodoApp {
             return nil
         }
     }
-    func deleteTodo(id: UUID) -> Bool {
+    func deleteTodo(id: String) -> Bool {
         var todos = loadTodos()
         if let index = todos.firstIndex(where: { $0.id == id }) {
             todos.remove(at: index)
@@ -51,6 +51,13 @@ class TodoApp {
         } else {
             return false
         }
-}
+    }
+    func listTodos() -> [TodoItem] {
+        let todos = loadTodos()
+        for todo in todos {
+            print("ID: \(todo.id), Title: \(todo.title), Completed: \(todo.completed)")
+        }
+        return todos
 
+    }
 }
