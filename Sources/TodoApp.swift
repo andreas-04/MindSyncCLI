@@ -16,6 +16,8 @@ class TodoApp {
             return []
         }
         return loadedTodos
+
+
     }
 
     func addTodo(title: String, completed: Bool = false) -> TodoItem {
@@ -35,6 +37,18 @@ class TodoApp {
             if let newCompletedStatus = completed {
                 todoToUpdate.completed = newCompletedStatus
             }
+            todos[index] = todoToUpdate
+            saveTodos(todos: todos)
+            return todoToUpdate
+        } else {
+            return nil
+        }
+    }
+    func updateTodoStatus(id: String, completed: Bool) -> TodoItem? {
+        var todos = loadTodos()
+        if let index = todos.firstIndex(where: { $0.id == id }) {
+            var todoToUpdate = todos[index]
+            todoToUpdate.completed = completed
             todos[index] = todoToUpdate
             saveTodos(todos: todos)
             return todoToUpdate
