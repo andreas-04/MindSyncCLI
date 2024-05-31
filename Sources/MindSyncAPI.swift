@@ -3,39 +3,68 @@ import Foundation
 class API {
     private let baseURL = "http://localhost:8000/user_api"
 
-    func makeRequest(endpoint: String) {
+    //for debugging
+    private func printRequest(_ request: URLRequest) {
+        print("Request URL: \(request.url?.absoluteString ?? "No URL")")
+        print("HTTP Method: \(request.httpMethod ?? "No HTTP Method")")
+        print("Headers: \(request.allHTTPHeaderFields ?? [:])")
+        if let body = request.httpBody, let bodyString = String(data: body, encoding: .utf8) {
+            print("HTTP Body: \(bodyString)")
+        } else {
+            print("No HTTP Body")
+        }
+    }
+
+    func makeRequest(method: String, endpoint: String, data: Data? = nil, completion: @escaping (Result<String, Error>) -> Void) {
         let url = baseURL + endpoint
         guard let url = URL(string: url) else {
-            print("Invalid URL")
+            completion(.failure(NSError(domain: "InvalidURL", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
             return
         }
-        
         var request = URLRequest(url: url)
+        request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+        request.setValue("94Lijl5NB5975XJoyCJmGLVrvlI6gDb1", forHTTPHeaderField: "X-CSRFToken")
 
-            if let error = error {
-                print("Error: \(error.localizedDescription)")
-                return
-            }
-
-            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
-                print("Server error")
-                return
-            }
-
-            if let data = data {
-                if let responseString = String(data: data, encoding: .utf8) {
-                    print("Response:\n\(responseString)")
-                }
-            }
-            exit(EXIT_SUCCESS)
+        if let data = data {
+            request.httpBody = data
         }
+        // printRequest(request)
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            // print("Data task completed")
+            if let error = error {
+                // print("Error received: \(error.localizedDescription)")
+                completion(.failure(error))
+                exit(EXIT_FAILURE)
+            }
 
+            guard let httpResponse = response as? HTTPURLResponse else {
+                // print("Response is not HTTPURLResponse")
+                completion(.failure(NSError(domain: "ServerError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Server error"])))
+                exit(EXIT_FAILURE)
+
+            }
+            
+            // print("HTTP Response status code: \(httpResponse.statusCode)")
+            guard (200...299).contains(httpResponse.statusCode) else {
+                // print("Server returned error status code: \(httpResponse.statusCode)")
+                completion(.failure(NSError(domain: "ServerError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Server error"])))
+                exit(EXIT_FAILURE)
+            }
+
+            if let data = data, let responseString = String(data: data, encoding: .utf8) {
+                 print("Response data received: \(responseString)")
+                completion(.success(responseString))
+                exit(EXIT_SUCCESS)
+            } else {
+                // print("No data or data encoding error")
+                completion(.failure(NSError(domain: "DataError", code: 3, userInfo: [NSLocalizedDescriptionKey: "No data or data encoding error"])))
+                exit(EXIT_FAILURE)
+            }
+        }
         task.resume()
-
-        // Keep the main thread alive while the request completes
         RunLoop.main.run()
+        
     }
 }
+
