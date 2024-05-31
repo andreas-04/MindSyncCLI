@@ -5,11 +5,115 @@ import Foundation
 struct MindSyncCLI: ParsableCommand {
   static let configuration = CommandConfiguration(
     abstract: "A Swift todo command-line tool",
-    subcommands: [new.self, edit.self, delete.self, list.self]
+    subcommands: [login.self, register.self, logout.self, new.self, edit.self, delete.self, list.self]
   )
   mutating func run() throws{
+    let sessionManager = SessionManager()
+    if let session = sessionManager.loadSession(), session.isLoggedIn {
+      print("Help text here")
+    } else{
+      print("Please login with `MindSyncCLI login`")
+    }
+  }
+}
+
+struct login: ParsableCommand{
+  static let configuration = CommandConfiguration(abstract: "Logs into the system")
+  mutating func run() throws{
+    let sessionManager = SessionManager()
+    if let session = sessionManager.loadSession(), session.isLoggedIn {
+      print("Already Logged In")
+    } else{
+      print("Username:")
+      let username = readLine()
+      print("Password:")
+      let password = readLine()
+      let credentials = ["password": password, "username": username]
+      guard let jsonData = try? JSONSerialization.data(withJSONObject: credentials, options: []) else {
+        print("Failed to serialize credentials into JSON")
+        return
+      }
+      let api = API()
+      api.makeRequest(method: "POST", endpoint: "/login/", data:jsonData){ result in
+        switch result {
+        case .success( _):
+          // print("Response:\n\(responseString)")
+          let session = Session(isLoggedIn: true)
+          sessionManager.saveSession(session: session)
+          print("Successfully logged in")
+        case .failure(let error):
+          print("Error: \(error.localizedDescription)")
+        }
+      }
+    }
+  }
+}
+
+struct register: ParsableCommand{
+  static let configuration = CommandConfiguration(abstract: "Register a MindSync account")
+  mutating func run() throws {
+    let sessionManager = SessionManager()
     let api = API()
-    api.makeRequest(endpoint: "/users/2/habit_trackers/")
+    if let session = sessionManager.loadSession(), session.isLoggedIn {
+      print("Currently logged in")
+    }else{
+      print("email:")
+      let email = readLine()
+      print("Username:")
+      let username = readLine()
+      print("Password:")
+      let password = readLine()
+      let credentials = ["username": username, "email": email, "password": password ]
+      guard let jsonData = try? JSONSerialization.data(withJSONObject: credentials, options: []) else {
+        print("Failed to serialize credentials into JSON")
+        return
+      }
+      api.makeRequest(method: "POST", endpoint: "/register/", data:jsonData){ result in
+        switch result {
+        case .success( _):
+          // let credentials2  = ["username": username, "password": password ]
+          //  guard let jsonData = try? JSONSerialization.data(withJSONObject: credentials2, options: []) else {
+          //   print("Failed to serialize credentials into JSON")
+          //   return
+          // }
+          // api.makeRequest(method: "POST", endpoint: "/login/", data:jsonData){ result in
+          //   switch result {
+          //   case .success( _):
+
+          //     let session = Session(isLoggedIn: true)
+          //     sessionManager.saveSession(session: session)
+          //   case .failure(let error):
+          //     print("Error: \(error.localizedDescription)")
+          //   }
+          // }
+          print("Successfully Registered!")
+        case .failure(let error):
+          print("Error: \(error.localizedDescription)")
+        }
+      }
+
+    }
+  }
+}
+
+struct logout: ParsableCommand {
+  static let configuration = CommandConfiguration(abstract: "Log out of the system")
+
+  mutating func run() throws {
+    let sessionManager = SessionManager()
+    let api = API()
+    api.makeRequest(method: "GET", endpoint: "/logout/"){
+      result in
+      switch result {
+      case .success(_):
+        // print("Response:\n\(responseString)")
+        let session = Session(isLoggedIn: false)
+        sessionManager.saveSession(session: session)
+        print("Successfully logged out")
+      case .failure(let error):
+        print("Error: \(error.localizedDescription)")
+      }
+    }
   }
 }
 
@@ -71,6 +175,5 @@ struct list: ParsableCommand {
   mutating func run() throws{
     let app = TodoApp()
     _ = app.listTodos()
-    // print(todos)
   }
 }
