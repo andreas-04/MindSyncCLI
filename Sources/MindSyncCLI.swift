@@ -34,7 +34,7 @@ struct login: ParsableCommand{
         return
       }
       let api = API()
-      api.makeRequest(method: "POST", endpoint: "/login/", data:jsonData){ result in
+      api.makeRequest(method: "POST", endpoint: "user_api/login/", data:jsonData){ result in
         switch result {
         case .success( _):
           // print("Response:\n\(responseString)")
@@ -68,7 +68,7 @@ struct register: ParsableCommand{
         print("Failed to serialize credentials into JSON")
         return
       }
-      api.makeRequest(method: "POST", endpoint: "/register/", data:jsonData){ result in
+      api.makeRequest(method: "POST", endpoint: "user_api/register/", data:jsonData){ result in
         switch result {
         case .success( _):
           // let credentials2  = ["username": username, "password": password ]
@@ -102,7 +102,7 @@ struct logout: ParsableCommand {
   mutating func run() throws {
     let sessionManager = SessionManager()
     let api = API()
-    api.makeRequest(method: "GET", endpoint: "/logout/"){
+    api.makeRequest(method: "GET", endpoint: "user_api/logout/"){
       result in
       switch result {
       case .success(_):
