@@ -1,7 +1,7 @@
 import Foundation
 
 class API {
-    private let baseURL = "http://localhost:8000/user_api"
+    private let baseURL = "http://localhost:8000/"
 
     //for debugging
     private func printRequest(_ request: URLRequest) {
