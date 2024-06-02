@@ -24,16 +24,16 @@ class API {
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("94Lijl5NB5975XJoyCJmGLVrvlI6gDb1", forHTTPHeaderField: "X-CSRFToken")
+        request.setValue("nZYXJlNm6GqIL2yAiLvsAUYZQ0mwbWNw", forHTTPHeaderField: "x-csrftoken")
 
         if let data = data {
             request.httpBody = data
         }
-        // printRequest(request)
+        printRequest(request)
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             // print("Data task completed")
             if let error = error {
-                // print("Error received: \(error.localizedDescription)")
+                print("Error received: \(error.localizedDescription)")
                 completion(.failure(error))
                 exit(EXIT_FAILURE)
             }
@@ -47,13 +47,13 @@ class API {
             
             // print("HTTP Response status code: \(httpResponse.statusCode)")
             guard (200...299).contains(httpResponse.statusCode) else {
-                // print("Server returned error status code: \(httpResponse.statusCode)")
+                print("Server returned error status code: \(httpResponse.statusCode)")
                 completion(.failure(NSError(domain: "ServerError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Server error"])))
                 exit(EXIT_FAILURE)
             }
 
             if let data = data, let responseString = String(data: data, encoding: .utf8) {
-                 print("Response data received: \(responseString)")
+                //  print("Response data received: \(responseString)")
                 completion(.success(responseString))
                 exit(EXIT_SUCCESS)
             } else {

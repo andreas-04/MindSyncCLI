@@ -6,8 +6,8 @@ import Foundation
 struct MindSyncCLI: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "A Swift todo command-line tool",
-        subcommands: [login.self, register.self, logout.self]
-        // new.self, edit.self, delete.self, list.self
+        subcommands: [login.self, register.self, logout.self, new.self]
+        // , edit.self, delete.self, list.self
     )
     
     mutating func run() throws {
@@ -149,16 +149,31 @@ struct logout: ParsableCommand {
         }
     }
 }
-// struct new: ParsableCommand {
-//   @Argument var name:String
-//   @Argument var 
-//   static let configuration = CommandConfiguration(abstract: "Adds a new task")
+struct new: ParsableCommand {
+  static let configuration = CommandConfiguration(
+    abstract: "Adds a new task or goal",
+    subcommands: [task.self]
+  )
 
-//   mutating func run() throws{
+  mutating func run() throws{
+  } 
+}
+struct task: ParsableCommand{
+  @Argument(help: "Task name")
+  var name: String
+  @Argument(help: "The goal ID to attach this task to")
+  var goalId: Int
+  static let configuration = CommandConfiguration(abstract: "Add a task subcommand")
+  mutating func run() throws{
+    if let session = Session.load(), session.isLoggedIn {
+      let newTask = Task(name: name, habitTracker: session.habitTrackerId, goal: goalId)
+      newTask.sendRequest(method: "POST")
+    }else{
+      print("Not logged in... try 'mindsync login'")
+    }
+  }
 
-//     print("Added todo: \(newTodo.title)")
-//   } 
-// }
+} 
 
 // struct edit: ParsableCommand {
 //   @Argument(help: "The ID of the task to edit")
